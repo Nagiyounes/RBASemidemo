@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Leen - نظام إدارة المراجعات</title>
+<style>
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f8fafc;}
+.topbar{background:#2d5f7c;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:8px 20px;font-size:14px;}
+.topbar-left{display:flex;align-items:center;gap:20px;}
+.topbar-logo{font-weight:bold;font-size:20px;color:#ff6b6b;}
+.topbar-menu{display:flex;gap:15px;font-size:13px;}
+.topbar-menu span{cursor:pointer;opacity:.9;}
+.topbar-menu span:hover{text-decoration:underline;color:#ff6b6b;}
+.page{padding:20px;font-size:14px;}
+
+/* التصميم الجديد */
+.dashboard {display: grid;grid-template-columns: 1fr 1fr;gap: 20px;margin-bottom: 20px;}
+.stats-section {background: white;border-radius: 12px;padding: 15px;box-shadow: 0 4px 6px rgba(0,0,0,0.1);border: 1px solid #e2e8f0;}
+.stats-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 15px;padding-bottom: 10px;border-bottom: 1px solid #e2e8f0;}
+.stats-grid {display: grid;grid-template-columns: 1fr 1fr;gap: 15px;}
+.stat-box {text-align: center;padding: 15px;border-radius: 10px;cursor: pointer;transition: transform 0.2s;border: 2px solid transparent;}
+.stat-box:hover {transform: translateY(-2px);border-color: #2d5f7c;}
+.stat-number {font-size: 24px;font-weight: bold;margin: 5px 0;}
+.stat-label {font-size: 12px;color:#4a5568;}
+.not-started {background: #fff5f5;color: #e53e3e;border-color: #fed7d7;}
+.in-progress {background: #fffaf0;color: #dd6b20;border-color: #feebc8;}
+.completed {background: #f0fff4;color: #38a169;border-color: #c6f6d5;}
+.overdue {background: #fff5f5;color: #c53030;border-color: #fed7d7;}
+.total {background: #f7fafc;color: #2d3748;border-color: #e2e8f0;}
+
+.updates-section {background: white;border-radius: 12px;padding: 15px;box-shadow: 0 4px 6px rgba(0,0,0,0.1);border: 1px solid #e2e8f0;}
+.update-item {padding: 10px 0;border-bottom: 1px solid #f0f0f0;cursor: pointer;transition: background 0.2s;}
+.update-item:hover {background: #f8fafc;}
+.update-item:last-child {border-bottom: none;}
+.update-time {color: #718096;font-size: 12px;margin-top: 5px;}
+
+.see-more {text-align: center;color: #2d5f7c;margin-top: 10px;cursor: pointer;padding: 8px;border-radius: 6px;font-weight: bold;}
+.see-more:hover {background: #f0f7ff;}
+
+.horizontal-sections {display: grid;grid-template-columns: 1fr 1fr;gap: 20px;}
+.section {background: white;border-radius: 12px;padding: 15px;box-shadow: 0 4px 6px rgba(0,0,0,0.1);border: 1px solid #e2e8f0;}
+.section-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 15px;padding-bottom: 10px;border-bottom: 1px solid #e2e8f0;}
+
+.notes-actions {display: flex;gap: 10px;margin-bottom: 15px;}
+.notes-actions button {padding: 8px 16px;border: 1px solid #e2e8f0;background: white;border-radius: 8px;cursor: pointer;transition: all 0.2s;font-weight: 500;}
+.notes-actions button:hover {background: #2d5f7c;color: white;border-color: #2d5f7c;}
+
+.files-grid {display: grid;grid-template-columns: 1fr;gap: 10px;}
+.file-item {display: flex;justify-content: space-between;padding: 12px;background: #f8fafc;border-radius: 8px;cursor: pointer;transition: all 0.2s;border: 1px solid #e2e8f0;}
+.file-item:hover {background: #f0f7ff;border-color: #2d5f7c;transform: translateX(-2px);}
+
+.no-records {text-align: center;color: #a0aec0;padding: 20px;background: #f8fafc;border-radius: 8px;border: 1px dashed #e2e8f0;}
+
+.hours-section {text-align: center;padding: 20px;}
+.hours-total {font-size: 18px;font-weight: bold;margin: 10px 0;color: #2d5f7c;}
+
+.employee-hours {margin: 10px 0;padding: 12px;background: #f8fafc;border-radius: 8px;cursor: pointer;transition: all 0.2s;border: 1px solid #e2e8f0;}
+.employee-hours:hover {background: #f0f7ff;border-color: #2d5f7c;}
+
+/* نمط للنوافذ المنبثقة والرسائل */
+.modal {display: none;position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(45, 95, 124, 0.8);z-index: 1000;}
+.modal-content {position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);background: white;padding: 25px;border-radius: 12px;min-width: 350px;box-shadow: 0 10px 25px rgba(0,0,0,0.2);border: 1px solid #e2e8f0;}
+.notification {position: fixed;top: 20px;left: 50%;transform: translateX(-50%);background: #2d5f7c;color: white;padding: 12px 24px;border-radius: 8px;z-index: 1001;box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+
+/* أنماط التنقل */
+.tab-buttons {display: flex;gap: 10px;margin-bottom: 15px;}
+.tab-button {padding: 8px 16px;border: 1px solid #e2e8f0;background: white;border-radius: 8px;cursor: pointer;font-weight: 500;}
+.tab-button.active {background: #2d5f7c;color: white;}
+
+/* ألوان جديدة */
+.primary-color {color: #2d5f7c;}
+.secondary-color {color: #ff6b6b;}
+.accent-color {color: #4fd1c7;}
+
+/* تأثيرات إضافية */
+.hover-lift {transition: transform 0.2s, box-shadow 0.2s;}
+.hover-lift:hover {transform: translateY(-2px);box-shadow: 0 8px 15px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Leen</div>
+    <div class="topbar-menu">
+      <span onclick="showPage('main')">الواجهة الرئيسية</span>
+      <span onclick="showPage('files')">ملفات</span>
+      <span onclick="showPage('updates')">تحديثات المستخدمين</span>
+      <span onclick="showPage('review')">نقاط المراجعة</span>
+      <span onclick="showPage('templates')">النماذج الجاهزه</span>
+      <span onclick="showPage('contracts')">العروض والعقود</span>
+      <span onclick="showPage('reports')">تقارير</span>
+      <span onclick="showPage('knowledge')">المركز المعرفي</span>
+    </div>
+  </div>
+  <div style="color: #ff6b6b; font-weight: bold;">Admin</div>
+</div>
+
+<div class="page" id="main-page">
+  <!-- محتوى الواجهة الرئيسية الحالي -->
+  <div class="dashboard">
+    <!-- إحصائيات 2025 -->
+    <div class="stats-section hover-lift">
+      <div class="stats-header">
+        <strong class="primary-color">01/01/2025 - 12/31/2025</strong>
+        <span style="color: #ff6b6b; font-weight: bold;">2025</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box not-started" onclick="showNotification('عرض الملفات التي لم تبدأ')">
+          <div class="stat-label">لم تبدأ</div>
+          <div class="stat-number">42</div>
+        </div>
+        <div class="stat-box in-progress" onclick="showNotification('عرض الملفات قيد التقدم')">
+          <div class="stat-label">في تقدم</div>
+          <div class="stat-number">156</div>
+        </div>
+        <div class="stat-box completed" onclick="showNotification('عرض الملفات المكتملة')">
+          <div class="stat-label">اكتملت</div>
+          <div class="stat-number">89</div>
+        </div>
+        <div class="stat-box total" onclick="showNotification('إجمالي الملفات')">
+          <div class="stat-label">المجموع</div>
+          <div class="stat-number">287</div>
+        </div>
+        <div class="stat-box overdue" onclick="showNotification('عرض الملفات المتأخرة')">
+          <div class="stat-label">المتأخرة</div>
+          <div class="stat-number">12</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- إحصائيات 2024 -->
+    <div class="stats-section hover-lift">
+      <div class="stats-header">
+        <strong class="primary-color">01/01/2024 - 12/31/2024</strong>
+        <span style="color: #ff6b6b; font-weight: bold;">2024</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box not-started" onclick="showNotification('عرض الملفات التي لم تبدأ - 2024')">
+          <div class="stat-label">لم تبدأ</div>
+          <div class="stat-number">18</div>
+        </div>
+        <div class="stat-box in-progress" onclick="showNotification('عرض الملفات قيد التقدم - 2024')">
+          <div class="stat-label">في تقدم</div>
+          <div class="stat-number">67</div>
+        </div>
+        <div class="stat-box completed" onclick="showNotification('عرض الملفات المكتملة - 2024')">
+          <div class="stat-label">اكتملت</div>
+          <div class="stat-number">324</div>
+        </div>
+        <div class="stat-box total" onclick="showNotification('إجمالي الملفات - 2024')">
+          <div class="stat-label">المجموع</div>
+          <div class="stat-number">409</div>
+        </div>
+        <div class="stat-box overdue" onclick="showNotification('عرض الملفات المتأخرة - 2024')">
+          <div class="stat-label">المتأخرة</div>
+          <div class="stat-number">5</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-sections">
+    <!-- تحديثات الملف -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">تحديثات الملف</strong>
+        <div>
+          <span style="margin-left: 15px; cursor: pointer; color: #2d5f7c;" onclick="showNotification('عرض مهامي')">مهامي</span>
+          <span style="cursor: pointer; color: #2d5f7c;" onclick="showNotification('عرض مراحل الملف')">مراحل الملف</span>
+        </div>
+      </div>
+      <div class="update-item" onclick="showNotification('تفاصيل تحديث الملف')">
+        أحمد السيد قام بتعديل حالة الملف مراجعة شركة التقنية المتطورة 2024م إلى في انتظار الموافقة النهائية
+        <div class="update-time">التاريخ 2025-01-15 10:22</div>
+      </div>
+      <div class="update-item" onclick="showNotification('تفاصيل تحديث الملف')">
+        فاطمة محمد قامت بتعديل حالة الملف مراجعة مؤسسة النهضة التعليمية 2023م إلى اكتمال المراجعة الميدانية
+        <div class="update-time">التاريخ 2025-01-14 14:45</div>
+      </div>
+      <div class="see-more" onclick="showNotification('تحميل المزيد من التحديثات')">شاهد المزيد</div>
+    </div>
+
+    <!-- الطلبات والتنبيهات -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">الطلبات والتنبيهات</strong>
+      </div>
+      <div class="update-item" onclick="showNotification('تفاصيل الطلب')">
+        علي محمود قام بإرسال ملف المراجعة مراجعة شركة المستقبل للتقنية 2024م للسنة المنتهية في 31/12/2024 إلى محمد أمين من أجل المراجعة النهائية
+        <div class="update-time">التاريخ 2025-01-15 11:10</div>
+      </div>
+      <div class="update-item" onclick="showNotification('تفاصيل الطلب')">
+        محمد أمين قام بإرسال ملف المراجعة مراجعة مؤسسة النور للمقاولات 2024م للسنة المنتهية في 31/12/2024 إلى مدير القسم من أجل الاعتماد
+        <div class="update-time">التاريخ 2025-01-14 08:20</div>
+      </div>
+      <div class="see-more" onclick="showNotification('تحميل المزيد من الطلبات')">شاهد المزيد</div>
+    </div>
+  </div>
+
+  <div class="horizontal-sections">
+    <!-- الساعات الفعلية -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">الساعات الفعلية</strong>
+        <span style="color: #ff6b6b;">01/01/2025- 12/31/2025</span>
+      </div>
+      <div class="hours-section">
+        <div class="employee-hours" onclick="showNotification('تفاصيل ساعات أحمد السيد')">
+          <div>أحمد السيد</div>
+          <div class="hours-total">42 ساعة</div>
+        </div>
+        <div class="employee-hours" onclick="showNotification('تفاصيل ساعات فاطمة محمد')">
+          <div>فاطمة محمد</div>
+          <div class="hours-total">38 ساعة</div>
+        </div>
+        <div class="employee-hours" onclick="showNotification('تفاصيل ساعات خالد عبدالله')">
+          <div>خالد عبدالله</div>
+          <div class="hours-total">45 ساعة</div>
+        </div>
+        <div class="hours-total" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+          مجموع الساعات - 125 ساعة
+        </div>
+      </div>
+    </div>
+
+    <!-- ملاحظاتي -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">ملاحظاتي</strong>
+      </div>
+      <div class="notes-actions">
+        <button onclick="showNotification('عرض جميع الملاحظات')">عرض الكل</button>
+        <button onclick="showNotification('الانتقال إلى الأرشيف')">أرشيف</button>
+        <button onclick="addNewNote()" style="background: #ff6b6b; color: white; border-color: #ff6b6b;">أضف ملاحظة</button>
+      </div>
+      <div style="padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 10px; cursor: pointer; border: 1px solid #e2e8f0;" onclick="showNotification('فتح الملاحظة')">
+        <div style="font-weight: bold; margin-bottom: 5px; color: #2d5f7c;">مراجعة تقارير الربع الرابع</div>
+        <div style="color: #718096; font-size: 12px; margin-bottom: 8px;">متابعة مع فريق المراجعة حول التقارير المعلقة</div>
+        <div style="color: #a0aec0; font-size: 11px;">15/01/2025 - 25/06/1446</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-sections">
+    <!-- ملفات التدقيق الجديدة -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">ملفات التدقيق الجديدة</strong>
+      </div>
+      <div class="files-grid">
+        <div class="file-item" onclick="showNotification('فتح ملف التقنية المتقدمة')">
+          <span>2874 - مراجعة شركة التقنية المتقدمة 2024</span>
+          <span>31/12/2024</span>
+        </div>
+        <div class="file-item" onclick="showNotification('فتح ملف التعليم الحديث')">
+          <span>2951 - مراجعة مؤسسة التعليم الحديث 2024</span>
+          <span>31/12/2024</span>
+        </div>
+        <div class="see-more" onclick="showNotification('عرض المزيد من الملفات')">شاهد المزيد</div>
+      </div>
+    </div>
+
+    <!-- عملاء للمتابعة -->
+    <div class="section hover-lift">
+      <div class="section-header">
+        <strong class="primary-color">عملاء للمتابعة</strong>
+      </div>
+      <div class="files-grid">
+        <div class="file-item" onclick="showNotification('متابعة شركة التقنية المتقدمة')">
+          <span>شركة التقنية المتقدمة</span>
+          <span style="color: #e53e3e; font-weight: bold;">متأخر 5 أيام</span>
+        </div>
+        <div class="file-item" onclick="showNotification('متابعة مؤسسة التعليم الحديث')">
+          <span>مؤسسة التعليم الحديث</span>
+          <span style="color: #dd6b20; font-weight: bold;">مستحق غداً</span>
+        </div>
+        <div class="see-more" onclick="showNotification('عرض المزيد من العملاء')">شاهد المزيد</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- صفحات أخرى (مخفية حالياً) -->
+<div class="page" id="files-page" style="display: none;">
+  <div style="text-align: center; padding: 50px;">
+    <h3 style="color: #2d5f7c;">صفحة الملفات</h3>
+    <p style="color: #718096;">هذه الصفحة تحت التطوير - سيتم إضافة محتوى الملفات قريباً</p>
+    <button onclick="showPage('main')" style="background: #2d5f7c; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">العودة للواجهة الرئيسية</button>
+  </div>
+</div>
+
+<div class="page" id="updates-page" style="display: none;">
+  <div style="text-align: center; padding: 50px;">
+    <h3 style="color: #2d5f7c;">تحديثات المستخدمين</h3>
+    <p style="color: #718096;">هذه الصفحة تحت التطوير - سيتم إضافة تحديثات المستخدمين قريباً</p>
+    <button onclick="showPage('main')" style="background: #2d5f7c; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">العودة للواجهة الرئيسية</button>
+  </div>
+</div>
+
+<!-- نوافذ منبثقة -->
+<div class="modal" id="noteModal">
+  <div class="modal-content">
+    <h3 style="color: #2d5f7c; margin-bottom: 15px;">إضافة ملاحظة جديدة</h3>
+    <textarea id="newNote" style="width: 100%; height: 120px; margin: 10px 0; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: Tahoma, Arial, sans-serif;" placeholder="اكتب ملاحظتك هنا..."></textarea>
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+      <button onclick="closeModal()" style="padding: 8px 16px; border: 1px solid #e2e8f0; background: white; border-radius: 8px; cursor: pointer;">إلغاء</button>
+      <button onclick="saveNote()" style="background: #2d5f7c; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div id="notification" class="notification" style="display: none;"></div>
+
+<script>
+// وظائف JavaScript لجعل الموقع تفاعلياً
+function showPage(pageId) {
+  // إخفاء جميع الصفحات
+  document.querySelectorAll('.page').forEach(page => {
+    page.style.display = 'none';
+  });
+  
+  // إظهار الصفحة المطلوبة
+  document.getElementById(pageId + '-page').style.display = 'block';
+  
+  // إظهار إشعار عند تغيير الصفحة
+  if (pageId !== 'main') {
+    showNotification('تم فتح صفحة: ' + getPageName(pageId));
+  }
+}
+
+function getPageName(pageId) {
+  const pages = {
+    'main': 'الواجهة الرئيسية',
+    'files': 'الملفات',
+    'updates': 'تحديثات المستخدمين',
+    'review': 'نقاط المراجعة',
+    'templates': 'النماذج الجاهزة',
+    'contracts': 'العروض والعقود',
+    'reports': 'التقارير',
+    'knowledge': 'المركز المعرفي'
+  };
+  return pages[pageId] || pageId;
+}
+
+function showNotification(message) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.style.display = 'block';
+  
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, 3000);
+}
+
+function addNewNote() {
+  document.getElementById('noteModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('noteModal').style.display = 'none';
+  document.getElementById('newNote').value = '';
+}
+
+function saveNote() {
+  const noteText = document.getElementById('newNote').value;
+  if (noteText.trim()) {
+    showNotification('تم حفظ الملاحظة بنجاح');
+    closeModal();
+  } else {
+    showNotification('يرجى كتابة ملاحظة');
+  }
+}
+
+// جعل العناصر قابلة للنقر
+document.addEventListener('DOMContentLoaded', function() {
+  // إضافة تأثيرات التفاعل
+  const interactiveElements = document.querySelectorAll('.stat-box, .update-item, .file-item, .employee-hours');
+  interactiveElements.forEach(element => {
+    element.style.cursor = 'pointer';
+  });
+});
+</script>
+
+</body>
+</html>
